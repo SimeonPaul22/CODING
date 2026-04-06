@@ -1,16 +1,18 @@
 # Clinical Physiology Calculator - Requirements
-# This project uses only Python standard library, so no external dependencies are required.
+# Core dependencies for the web UI
+flask>=2.3.0
 
-# However, the following are recommended development tools:
+# The CLI version uses only Python standard library, but the UI requires flask.
+
+# Recommended development tools:
 # For testing (optional):
-# pytest==7.4.0
+pytest>=7.4.0
 
 # For code formatting and linting (optional):
-# black==23.7.0
-# pytest==7.4.0
-# flake8==6.0.0
+black>=23.7.0
+flake8>=6.0.0
 
 # To use this project:
 # 1. Ensure Python 3.7+ is installed
-# 2. No package installation needed
-# 3. Run: python home.py
+# 2. Install packages: pip install -r requirements.txt
+# 3. Run: python app.py

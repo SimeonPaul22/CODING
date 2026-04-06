@@ -1,6 +1,6 @@
 # Clinical Physiology Calculator
 
-A professional command-line tool for calculating key physiological metrics and health indicators. This application computes BMI, Basal Metabolic Rate (BMR), and personalized cardiovascular training zones using evidence-based formulas.
+A professional tool for calculating key physiological metrics and health indicators. Available as both a command-line application and a modern web interface. This application computes BMI, Basal Metabolic Rate (BMR), and personalized cardiovascular training zones using evidence-based formulas.
 
 ## Features
 
@@ -12,6 +12,8 @@ A professional command-line tool for calculating key physiological metrics and h
 ✅ **Report Export** - Save results as JSON or CSV for tracking and sharing
 ✅ **Input Validation** - Robust error handling for numeric and range validation
 ✅ **Professional Reporting** - Clean, formatted output with organized health metrics
+✅ **Web Interface** - Modern Streamlit-based UI for easy interaction
+✅ **Dual Interface** - Choose between command-line or web-based experience
 
 ## Formulas Used
 
@@ -50,12 +52,42 @@ python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-3. Run the application:
+3. Install dependencies (required for web UI):
 ```bash
-python home.py
+pip install -r requirements.txt
 ```
 
+4. Run the application:
+
+   **For Web Interface (Recommended):**
+   ```bash
+   streamlit run app.py
+   ```
+   Then open your browser to the provided URL (typically http://localhost:8501)
+
+   **For Command-Line Interface:**
+   ```bash
+   python home.py
+   ```
+
 ## Usage
+
+### Web Interface (Recommended)
+
+1. Run the Streamlit app:
+```bash
+streamlit run app.py
+```
+
+2. Open your browser to the provided URL (usually http://localhost:8501)
+
+3. Fill in your personal information in the left panel
+
+4. Click "Calculate Physiology Metrics" to see your results
+
+5. Use the export buttons to download your report as JSON or CSV
+
+### Command-Line Interface
 
 Simply run the application and follow the prompts:
 
@@ -148,6 +180,7 @@ The Karvonen Formula provides a personalized training zone based on individual f
 
 ## Code Structure
 
+### Command-Line Application (home.py)
 ```
 home.py
 ├── get_user_inputs()                   # Collect user data with validation
@@ -163,6 +196,16 @@ home.py
 └── main()                              # Main orchestrator
 ```
 
+### Web Application (app.py)
+```
+app.py
+├── main()                              # Streamlit app orchestrator
+    ├── Input form with validation      # User data collection
+    ├── Calculation logic               # Uses functions from home.py
+    ├── Results display                 # Interactive UI with metrics
+    └── Export functionality            # JSON/CSV download buttons
+```
+
 ## Error Handling
 
 The application includes robust error handling for:
@@ -174,7 +217,8 @@ The application includes robust error handling for:
 ## Technical Details
 
 - **Language**: Python 3.7+
-- **Dependencies**: None (uses standard library only)
+- **Web Framework**: Streamlit (for web UI)
+- **Dependencies**: Streamlit >=1.28.0 (web UI), Python standard library (CLI)
 - **Type Hints**: Included for better IDE support
 - **Documentation**: Comprehensive docstrings for all functions
 
