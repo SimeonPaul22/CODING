@@ -5,9 +5,11 @@ A professional command-line tool for calculating key physiological metrics and h
 ## Features
 
 ✅ **Body Mass Index (BMI) Calculation** - Assess body composition with clinical categorization
-✅ **Basal Metabolic Rate (BMR)** - Calculate daily caloric expenditure at rest using Mifflin-St Jeor Equation
+✅ **Basal Metabolic Rate (BMR)** - Calculate daily caloric expenditure at rest using sex-specific Mifflin-St Jeor formulas
+✅ **Total Daily Energy Expenditure (TDEE)** - Estimate calories burned based on activity level
 ✅ **Target Heart Rate Zones** - Determine cardio training intensities using Karvonen Formula
 ✅ **Clinical Categories** - Automatic classification of health metrics (Underweight, Normal, Overweight, Obese)
+✅ **Report Export** - Save results as JSON or CSV for tracking and sharing
 ✅ **Input Validation** - Robust error handling for numeric and range validation
 ✅ **Professional Reporting** - Clean, formatted output with organized health metrics
 
@@ -63,9 +65,11 @@ python home.py
 
 You'll be asked to enter:
 - **Name**: Your full name
+- **Sex**: Your biological sex for BMR calculation (male/female)
 - **Age**: Your age in years (1-150)
 - **Weight**: Your weight in kilograms (must be positive)
 - **Height**: Your height in centimeters (must be positive)
+- **Activity Level**: Your typical daily activity level
 - **Resting Heart Rate**: Your resting heart rate in BPM (1-200)
 
 ### Example Output
@@ -146,14 +150,17 @@ The Karvonen Formula provides a personalized training zone based on individual f
 
 ```
 home.py
-├── get_user_inputs()           # Collect user data with validation
-├── calculate_bmi()             # BMI calculation
-├── get_bmi_category()          # BMI classification
-├── calculate_bmr()             # BMR calculation (Mifflin-St Jeor)
-├── calculate_max_heart_rate()  # Max HR estimation
-├── calculate_target_heart_rate_zones()  # Karvonen Formula
-├── display_report()            # Formatted output
-└── main()                      # Main orchestrator
+├── get_user_inputs()                   # Collect user data with validation
+├── calculate_bmi()                     # BMI calculation
+├── get_bmi_category()                  # BMI classification
+├── calculate_bmr()                     # Sex-specific BMR calculation (Mifflin-St Jeor)
+├── calculate_tdee()                    # Activity-based TDEE estimate
+├── calculate_max_heart_rate()          # Max HR estimation
+├── calculate_target_heart_rate_zones() # Karvonen Formula
+├── display_report()                    # Formatted output
+├── build_report_data()                 # Build serializable report payload
+├── prompt_save_report()                # Save report as JSON or CSV
+└── main()                              # Main orchestrator
 ```
 
 ## Error Handling
