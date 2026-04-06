@@ -132,7 +132,7 @@ def calculate_bmi(weight: float, height: float) -> float:
     """
     Calculate Body Mass Index (BMI).
     
-    Formula: BMI = weight (kg) / [height (m)]²
+    Formula: BMI = weight (kg) / [height (m)]^2
     
     Args:
         weight (float): Body weight in kilograms.
@@ -152,9 +152,9 @@ def get_bmi_category(bmi: float) -> str:
     
     Categories:
         - Underweight: BMI < 18.5
-        - Normal weight: 18.5 ≤ BMI < 25
-        - Overweight: 25 ≤ BMI < 30
-        - Obese: BMI ≥ 30
+        - Normal weight: 18.5 <= BMI < 25
+        - Overweight: 25 <= BMI < 30
+        - Obese: BMI >= 30
     
     Args:
         bmi (float): Body Mass Index value.
@@ -178,8 +178,8 @@ def calculate_bmr(age: int, weight: float, height: float, sex: str) -> float:
     Supports male and female formulas.
     
     Formulas:
-        Male:   BMR = (10 × weight) + (6.25 × height) - (5 × age) + 5
-        Female: BMR = (10 × weight) + (6.25 × height) - (5 × age) - 161
+        Male:   BMR = (10 * weight) + (6.25 * height) - (5 * age) + 5
+        Female: BMR = (10 * weight) + (6.25 * height) - (5 * age) - 161
     
     Args:
         age (int): Age in years.
@@ -190,10 +190,7 @@ def calculate_bmr(age: int, weight: float, height: float, sex: str) -> float:
     Returns:
         float: The calculated BMR in kcal/day.
     """
-    if sex == "female":
-        offset = -161
-    else:
-        offset = 5
+    offset = -161 if sex == "female" else 5
 
     bmr = (10 * weight) + (6.25 * height) - (5 * age) + offset
     return bmr
@@ -215,7 +212,7 @@ def calculate_tdee(bmr: float, activity_level: str) -> float:
         "Lightly active": 1.375,
         "Moderately active": 1.55,
         "Very active": 1.725,
-        "Extra active": 1.9
+        "Extra active": 1.9,
     }
     factor = activity_factor.get(activity_level)
     if factor is None:
@@ -242,7 +239,7 @@ def calculate_target_heart_rate_zones(age: int, resting_hr: int) -> dict:
     """
     Calculate target heart rate zones using the Karvonen Formula.
     
-    Formula: Target HR = ((Max HR - Resting HR) × %Intensity) + Resting HR
+    Formula: Target HR = ((Max HR - Resting HR) * %Intensity) + Resting HR
     
     Calculates both 60% (moderate intensity) and 80% (vigorous intensity) zones.
     
@@ -255,167 +252,75 @@ def calculate_target_heart_rate_zones(age: int, resting_hr: int) -> dict:
     """
     max_hr = calculate_max_heart_rate(age)
     heart_rate_reserve = max_hr - resting_hr
-    
-    zone_60 = (heart_rate_reserve * 0.60) + resting_hr
-    zone_80 = (heart_rate_reserve * 0.80) + resting_hr
-    
+
+    zone_60 = round((heart_rate_reserve * 0.60) + resting_hr)
+    zone_80 = round((heart_rate_reserve * 0.80) + resting_hr)
+
     return {
-        'max_hr': max_hr,
-        'zone_60': round(zone_60, 1),
-        'zone_80': round(zone_80, 1)
+        "max_hr": max_hr,
+        "zone_60": zone_60,
+        "zone_80": zone_80,
     }
 
 
-def display_report(user_data: dict, bmi: float, bmi_category: str, 
-                   bmr: float, tdee: float, hr_zones: dict) -> None:
+def build_health_recommendations(
+    bmi: float,
+    bmr: float,
+    age: int,
+    sex: str,
+    resting_hr: int,
+    activity_level: str,
+) -> dict:
     """
-    Display a formatted clinical report with all calculations and categories.
-    
-    Args:
-        user_data (dict): Dictionary containing name, sex, age, weight, height, resting_hr, activity_level.
-        bmi (float): Calculated Body Mass Index.
-        bmi_category (str): Clinical category for BMI.
-        bmr (float): Calculated Basal Metabolic Rate in kcal/day.
-        tdee (float): Estimated Total Daily Energy Expenditure in kcal/day.
-        hr_zones (dict): Dictionary containing heart rate zone calculations.
+    Build a set of tailored wellness recommendations based on core metrics.
     """
-    print("\n" + "="*60)
-    print("CLINICAL PHYSIOLOGY REPORT")
-    print("="*60)
-    
-    print(f"\n{'PERSONAL INFORMATION':^60}")
-    print("-" * 60)
-    print(f"Name:              {user_data['name']}")
-    print(f"Sex:               {user_data['sex'].capitalize()}")
-    print(f"Age:               {user_data['age']} years")
-    print(f"Weight:            {user_data['weight']} kg")
-    print(f"Height:            {user_data['height']} cm")
-    print(f"Resting HR:        {user_data['resting_hr']} BPM")
-    print(f"Activity Level:    {user_data['activity_level']}")
-    
-    print(f"\n{'BODY COMPOSITION':^60}")
-    print("-" * 60)
-    print(f"BMI:               {bmi:.1f} kg/m²")
-    print(f"Category:          {bmi_category}")
-    
-    print(f"\n{'METABOLIC RATE':^60}")
-    print("-" * 60)
-    print(f"BMR (Mifflin-St Jeor): {bmr:.0f} kcal/day")
-    print(f"Estimated TDEE:     {tdee:.0f} kcal/day")
-    print(f"(Daily caloric needs including activity level)")
-    
-    print(f"\n{'CARDIOVASCULAR ZONES':^60}")
-    print("-" * 60)
-    print(f"Maximum HR:        {hr_zones['max_hr']} BPM")
-    print(f"60% Intensity:     {hr_zones['zone_60']:.0f} BPM (Moderate)")
-    print(f"80% Intensity:     {hr_zones['zone_80']:.0f} BPM (Vigorous)")
-    print(f"\nTarget Training Zone: {hr_zones['zone_60']:.0f} - {hr_zones['zone_80']:.0f} BPM")
-    
-    print("\n" + "="*60 + "\n")
+    bmi_category = get_bmi_category(bmi)
+    tdee = calculate_tdee(bmr, activity_level)
+    deficit = round(max(300, min(650, tdee * 0.15)))
+    daily_calories = round(tdee - deficit)
 
-
-def build_report_data(user_data: dict, bmi: float, bmi_category: str, bmr: float, tdee: float, hr_zones: dict) -> dict:
-    """
-    Build a serializable report payload for saving.
-    """
-    return {
-        "name": user_data["name"],
-        "sex": user_data["sex"],
-        "age": user_data["age"],
-        "weight_kg": user_data["weight"],
-        "height_cm": user_data["height"],
-        "resting_hr_bpm": user_data["resting_hr"],
-        "activity_level": user_data["activity_level"],
-        "bmi": round(bmi, 1),
-        "bmi_category": bmi_category,
-        "bmr_kcal_per_day": round(bmr),
-        "tdee_kcal_per_day": round(tdee),
-        "max_hr_bpm": hr_zones["max_hr"],
-        "zone_60_bpm": hr_zones["zone_60"],
-        "zone_80_bpm": hr_zones["zone_80"]
-    }
-
-
-def save_report_data(report_data: dict, filename: str) -> None:
-    """
-    Save the report data as JSON or CSV based on filename extension.
-    """
-    file_path = Path(filename)
-    if file_path.suffix.lower() == ".csv":
-        with file_path.open("w", newline="", encoding="utf-8") as csv_file:
-            writer = csv.writer(csv_file)
-            writer.writerow(["metric", "value"])
-            for key, value in report_data.items():
-                writer.writerow([key, value])
+    if bmi >= 30:
+        cardio_plan = "Start with low-impact cardio, such as brisk walking, stationary cycling, or aqua therapy."
+    elif bmi >= 25:
+        cardio_plan = "Use low-impact cardio plus moderate interval walking to lower body fat while protecting joints."
+    elif bmi >= 18.5:
+        cardio_plan = "Maintain moderate cardiovascular training 3-5 times per week with recovery days built in."
     else:
-        with file_path.open("w", encoding="utf-8") as json_file:
-            json.dump(report_data, json_file, indent=2)
+        cardio_plan = "Focus on gentle strength training and progressive conditioning to support healthy weight gain."
 
-    print(f"\nReport saved to {file_path.resolve()}")
+    if bmi >= 25:
+        nutrition_plan = (
+            f"Aim for a caloric deficit of about {deficit} kcal/day, targeting {daily_calories} kcal/day "
+            "with lean proteins, fiber, and nutrient-dense vegetables."
+        )
+    else:
+        nutrition_plan = (
+            f"Maintain your energy needs with around {round(tdee)} kcal/day, prioritizing whole foods, "
+            "healthy fats, and consistent hydration."
+        )
 
+    if resting_hr > 75:
+        recovery_note = "Your resting heart rate is above typical resting range. Build recovery and relaxation sessions into each week."
+    else:
+        recovery_note = "Your resting heart rate is in a healthy range; continue structured recovery and mobility work."
 
-def prompt_save_report(report_data: dict) -> None:
-    """
-    Prompt the user to save the report optionally.
-    """
-    while True:
-        save_choice = input("Would you like to save this report? (y/n): ").strip().lower()
-        if save_choice in ("y", "yes"):
-            break
-        if save_choice in ("n", "no"):
-            return
-        print("Please enter 'y' or 'n'.")
-
-    while True:
-        format_choice = input("Save as JSON or CSV? [json/csv]: ").strip().lower()
-        if format_choice in ("json", "csv"):
-            break
-        print("Please enter 'json' or 'csv'.")
-
-    default_filename = f"physiology_report_{datetime.now():%Y%m%d_%H%M%S}.{format_choice}"
-    filename = input(f"Enter filename to save report (default: {default_filename}): ").strip()
-    if not filename:
-        filename = default_filename
-    if not filename.lower().endswith(f".{format_choice}"):
-        filename = f"{filename}.{format_choice}"
-
-    save_report_data(report_data, filename)
-
-
-def main() -> None:
-    """
-    Main function orchestrating the clinical physiology calculator workflow.
-    
-    Executes the following steps:
-    1. Collect user inputs
-    2. Perform physiological calculations
-    3. Determine clinical categories
-    4. Display formatted report
-    """
-    try:
-        # Step 1: Collect user data
-        user_data = get_user_inputs()
-        
-        # Step 2: Perform calculations
-        bmi = calculate_bmi(user_data['weight'], user_data['height'])
-        bmi_category = get_bmi_category(bmi)
-        bmr = calculate_bmr(user_data['age'], user_data['weight'], user_data['height'], user_data['sex'])
-        tdee = calculate_tdee(bmr, user_data['activity_level'])
-        hr_zones = calculate_target_heart_rate_zones(user_data['age'], user_data['resting_hr'])
-        
-        # Step 3: Display results
-        display_report(user_data, bmi, bmi_category, bmr, tdee, hr_zones)
-
-        report_data = build_report_data(user_data, bmi, bmi_category, bmr, tdee, hr_zones)
-        prompt_save_report(report_data)
-        
-    except ValueError as e:
-        print(f"\nError: {e}")
-        print("Please restart and enter valid values.")
-    except Exception as e:
-        print(f"\nAn unexpected error occurred: {e}")
-        print("Please restart the application.")
+    return {
+        "bmi_category": bmi_category,
+        "tdee": round(tdee),
+        "daily_calories": daily_calories,
+        "cardio_plan": cardio_plan,
+        "nutrition_plan": nutrition_plan,
+        "recovery_note": recovery_note,
+    }
 
 
 if __name__ == "__main__":
-    main()
+    inputs = get_user_inputs()
+    bmi = calculate_bmi(inputs["weight"], inputs["height"])
+    bmr = calculate_bmr(inputs["age"], inputs["weight"], inputs["height"], inputs["sex"])
+    hr_zones = calculate_target_heart_rate_zones(inputs["age"], inputs["resting_hr"])
+
+    print(f"\nBMI: {bmi:.1f}")
+    print(f"BMR: {bmr:.0f} kcal/day")
+    print(f"Target HR 60%: {hr_zones['zone_60']} bpm")
+    print(f"Target HR 80%: {hr_zones['zone_80']} bpm")

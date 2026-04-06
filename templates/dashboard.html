@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="grid gap-8 xl:grid-cols-[280px_1fr]">
+    <aside class="space-y-6 rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm">
+      <div class="space-y-3">
+        <div class="rounded-3xl bg-indigo-600 p-4 text-white shadow-lg shadow-indigo-200/40">
+          <i data-lucide="activity" class="h-6 w-6"></i>
+        </div>
+        <div>
+          <p class="text-sm uppercase tracking-[0.3em] text-slate-500">Dashboard</p>
+          <h2 class="text-2xl font-semibold text-slate-900">Overview</h2>
+        </div>
+      </div>
+      <nav class="space-y-2 text-sm font-medium text-slate-700">
+        <a href="#overview" class="block rounded-2xl px-4 py-3 hover:bg-white/80">Overview</a>
+        <a href="#vitals" class="block rounded-2xl px-4 py-3 hover:bg-white/80">Vitals Tracker</a>
+        <a href="#recommendations" class="block rounded-2xl px-4 py-3 hover:bg-white/80">Recommendations</a>
+        <a href="#profile" class="block rounded-2xl px-4 py-3 hover:bg-white/80">Profile</a>
+      </nav>
+      <div class="rounded-3xl bg-white p-4 shadow-sm">
+        <p class="text-xs uppercase tracking-[0.24em] text-slate-400">Status</p>
+        <p class="mt-2 text-lg font-semibold text-slate-900">{{ current_user.role }}</p>
+      </div>
+    </aside>
+
+    <section class="space-y-8">
+      <section id="overview" class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p class="text-sm uppercase tracking-[0.3em] text-indigo-600">Patient summary</p>
+            <h2 class="mt-2 text-3xl font-semibold text-slate-900">Welcome back, {{ current_user.name }}</h2>
+            <p class="text-slate-500">Your latest vitals and personalized guidance are waiting.</p>
+          </div>
+          {% if latest_vital %}
+            <a href="{{ url_for('report', vital_id=latest_vital.id) }}" class="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow hover:bg-indigo-700">
+              <i data-lucide="download"></i> Download PDF report
+            </a>
+          {% endif %}
+        </div>
+
+        <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <article class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+            <p class="text-sm uppercase tracking-[0.24em] text-slate-500">Latest BMI</p>
+            <p class="mt-3 text-3xl font-semibold text-slate-900">{{ latest_vital.bmi|default('—') }}</p>
+            <p class="mt-2 text-sm text-slate-500">{{ latest_vital.bmi_category|default('No vitals yet') }}</p>
+          </article>
+          <article class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+            <p class="text-sm uppercase tracking-[0.24em] text-slate-500">BMR</p>
+            <p class="mt-3 text-3xl font-semibold text-slate-900">{{ latest_vital.bmr|default('—') }}</p>
+            <p class="mt-2 text-sm text-slate-500">kcal/day</p>
+          </article>
+          <article class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+            <p class="text-sm uppercase tracking-[0.24em] text-slate-500">Heart zone 60%</p>
+            <p class="mt-3 text-3xl font-semibold text-slate-900">{{ latest_vital.zone_60|default('—') }}</p>
+            <p class="mt-2 text-sm text-slate-500">BPM target</p>
+          </article>
+          <article class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+            <p class="text-sm uppercase tracking-[0.24em] text-slate-500">Heart zone 80%</p>
+            <p class="mt-3 text-3xl font-semibold text-slate-900">{{ latest_vital.zone_80|default('—') }}</p>
+            <p class="mt-2 text-sm text-slate-500">BPM target</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="vitals" class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <p class="text-sm uppercase tracking-[0.3em] text-indigo-600">Vitals Tracker</p>
+            <h3 class="text-2xl font-semibold text-slate-900">Submit new measurement</h3>
+          </div>
+          <div class="rounded-3xl bg-indigo-50 px-4 py-3 text-sm text-indigo-700">Track trends, not just readings.</div>
+        </div>
+        <form method="post" action="{{ url_for('submit_vitals') }}" class="mt-8 grid gap-4 lg:grid-cols-2">
+          <label class="block">
+            <span class="text-sm font-medium text-slate-700">Weight (kg)</span>
+            <input type="number" name="weight" step="0.1" min="0" required class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:border-indigo-500 focus:outline-none" />
+          </label>
+          <label class="block">
+            <span class="text-sm font-medium text-slate-700">Height (cm)</span>
+            <input type="number" name="height" step="0.1" min="0" required class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:border-indigo-500 focus:outline-none" />
+          </label>
+          <label class="block">
+            <span class="text-sm font-medium text-slate-700">Resting heart rate (bpm)</span>
+            <input type="number" name="resting_hr" min="20" max="200" required class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:border-indigo-500 focus:outline-none" />
+          </label>
+          <label class="block">
+            <span class="text-sm font-medium text-slate-700">Blood pressure</span>
+            <div class="mt-2 grid gap-3 sm:grid-cols-2">
+              <input type="number" name="systolic" placeholder="Systolic" class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:border-indigo-500 focus:outline-none" />
+              <input type="number" name="diastolic" placeholder="Diastolic" class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:border-indigo-500 focus:outline-none" />
+            </div>
+          </label>
+          <label class="block lg:col-span-2">
+            <span class="text-sm font-medium text-slate-700">Activity level</span>
+            <select name="activity_level" required class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:border-indigo-500 focus:outline-none">
+              <option value="">Select intensity</option>
+              {% for level in activity_levels %}
+                <option value="{{ level }}">{{ level }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="block lg:col-span-2">
+            <span class="text-sm font-medium text-slate-700">Notes</span>
+            <textarea name="notes" rows="3" class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:border-indigo-500 focus:outline-none"></textarea>
+          </label>
+          <button type="submit" class="lg:col-span-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow hover:bg-indigo-700">Save measurement</button>
+        </form>
+
+        <div class="mt-12 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+          <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+            <p class="text-sm uppercase tracking-[0.3em] text-slate-500">30-day weight history</p>
+            <div class="mt-6">
+              <canvas id="weightChart" class="w-full"></canvas>
+            </div>
+          </div>
+          <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+            <p class="text-sm uppercase tracking-[0.3em] text-slate-500">Resting heart rate</p>
+            <div class="mt-6">
+              <canvas id="hrChart" class="w-full"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="recommendations" class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <p class="text-sm uppercase tracking-[0.3em] text-indigo-600">Personalized guidance</p>
+            <h3 class="text-2xl font-semibold text-slate-900">AI-informed lifestyle plan</h3>
+          </div>
+          <div class="rounded-3xl bg-indigo-50 px-4 py-3 text-sm text-indigo-700">Built from measured vitals.</div>
+        </div>
+        {% if health_recommendations %}
+          <div class="mt-8 grid gap-6 lg:grid-cols-3">
+            <article class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+              <p class="text-sm uppercase tracking-[0.24em] text-slate-500">Recommended calories</p>
+              <p class="mt-3 text-3xl font-semibold text-slate-900">{{ health_recommendations.daily_calories }} kcal</p>
+              <p class="mt-2 text-sm text-slate-500">Target intake for today</p>
+            </article>
+            <article class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+              <p class="text-sm uppercase tracking-[0.24em] text-slate-500">Fitness</p>
+              <p class="mt-3 text-slate-900">{{ health_recommendations.cardio_plan }}</p>
+            </article>
+            <article class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+              <p class="text-sm uppercase tracking-[0.24em] text-slate-500">Nutrition</p>
+              <p class="mt-3 text-slate-900">{{ health_recommendations.nutrition_plan }}</p>
+            </article>
+          </div>
+          <div class="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-5">
+            <p class="text-sm uppercase tracking-[0.24em] text-slate-500">Recovery</p>
+            <p class="mt-3 text-slate-900">{{ health_recommendations.recovery_note }}</p>
+          </div>
+        {% else %}
+          <p class="mt-8 text-slate-600">Submit your first vitals measurement to unlock personalized recommendations.</p>
+        {% endif %}
+      </section>
+
+      <section id="profile" class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <p class="text-sm uppercase tracking-[0.3em] text-indigo-600">Profile</p>
+            <h3 class="text-2xl font-semibold text-slate-900">Account details</h3>
+          </div>
+          <div class="rounded-3xl bg-slate-100 px-4 py-3 text-sm text-slate-700">{{ current_user.role }}</div>
+        </div>
+        <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <article class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+            <p class="text-sm uppercase tracking-[0.24em] text-slate-500">Full name</p>
+            <p class="mt-3 text-lg font-semibold text-slate-900">{{ current_user.name }}</p>
+          </article>
+          <article class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+            <p class="text-sm uppercase tracking-[0.24em] text-slate-500">Email</p>
+            <p class="mt-3 text-lg font-semibold text-slate-900">{{ current_user.email }}</p>
+          </article>
+          <article class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+            <p class="text-sm uppercase tracking-[0.24em] text-slate-500">Age</p>
+            <p class="mt-3 text-lg font-semibold text-slate-900">{{ current_user.age }}</p>
+          </article>
+          <article class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+            <p class="text-sm uppercase tracking-[0.24em] text-slate-500">Sex</p>
+            <p class="mt-3 text-lg font-semibold text-slate-900">{{ current_user.sex.title() }}</p>
+          </article>
+        </div>
+        {% if current_user.role == 'Doctor' %}
+          <div class="mt-8 rounded-3xl border border-indigo-200 bg-indigo-50 p-6">
+            <p class="text-sm uppercase tracking-[0.24em] text-indigo-700">Doctor view</p>
+            <p class="mt-3 text-slate-700">Patient registry is available in this demo. Select a patient to review recent vitals and export a PDF summary.</p>
+          </div>
+        {% endif %}
+      </section>
+    </section>
+  </div>
+
+  <script>
+    const labels = {{ chart_labels|tojson }};
+    const weights = {{ chart_weights|tojson }};
+    const restingHr = {{ chart_resting_hr|tojson }};
+
+    const weightCtx = document.getElementById('weightChart');
+    if (weightCtx) {
+      new Chart(weightCtx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Weight (kg)',
+            data: weights,
+            borderColor: '#4f46e5',
+            backgroundColor: 'rgba(79,70,229,0.15)',
+            tension: 0.35,
+            pointRadius: 4,
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false } },
+            y: { beginAtZero: false }
+          }
+        }
+      });
+    }
+
+    const hrCtx = document.getElementById('hrChart');
+    if (hrCtx) {
+      new Chart(hrCtx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Resting HR (bpm)',
+            data: restingHr,
+            borderColor: '#2563eb',
+            backgroundColor: 'rgba(37,99,235,0.15)',
+            tension: 0.35,
+            pointRadius: 4,
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false } },
+            y: { beginAtZero: false }
+          }
+        }
+      });
+    }
+  </script>
+{% endblock %}
