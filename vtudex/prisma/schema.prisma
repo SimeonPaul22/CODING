@@ -1,0 +1,132 @@
+// VTUDex database schema
+// All monetary values are stored in KOBO (₦1 = 100 kobo) as integers.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum WalletTxType {
+  CREDIT
+  DEBIT
+}
+
+enum TxStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum ServiceType {
+  DATA
+  EDUCATION
+  ELECTRICITY
+  TV
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  phone         String   @unique
+  password      String
+  role          Role     @default(USER)
+  walletBalance Int      @default(0) // kobo
+  createdAt     DateTime @default(now())
+
+  walletTransactions WalletTransaction[]
+  transactions       Transaction[]
+  beneficiaries      Beneficiary[]
+}
+
+model WalletTransaction {
+  id          String       @id @default(cuid())
+  userId      String
+  type        WalletTxType
+  amount      Int // kobo
+  reference   String       @unique
+  status      TxStatus     @default(PENDING)
+  description String?
+  createdAt   DateTime     @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model Transaction {
+  id         String      @id @default(cuid())
+  userId     String
+  service    ServiceType
+  provider   String // e.g. "mtn-data", "ikeja-electric", "dstv", "waec"
+  recipient  String // phone, meter number, smartcard, or email
+  amount     Int // kobo charged to the user
+  status     TxStatus    @default(PENDING)
+  apiRef     String?     @unique // request_id sent to VTpass
+  tokenOrPin String? // electricity token or exam pin(s)
+  createdAt  DateTime    @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([status])
+}
+
+model Beneficiary {
+  id         String      @id @default(cuid())
+  userId     String
+  service    ServiceType
+  label      String
+  identifier String // phone / meter / smartcard
+  provider   String
+  createdAt  DateTime    @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, service, identifier])
+}
+
+model DataBundle {
+  id            String  @id @default(cuid())
+  network       String // MTN | AIRTEL | GLO | 9MOBILE
+  type          String // SME | GIFTING
+  size          String // e.g. "1GB"
+  price         Int // kobo - selling price
+  costPrice     Int // kobo - VTpass cost
+  validity      String // e.g. "30 days"
+  variationCode String? // VTpass variation_code
+  active        Boolean @default(true)
+
+  @@index([network, type, active])
+}
+
+model PinProduct {
+  id            String  @id @default(cuid())
+  type          String  @unique // WAEC | NECO | JAMB
+  price         Int // kobo
+  costPrice     Int // kobo
+  variationCode String?
+  active        Boolean @default(true)
+}
+
+model TVPackage {
+  id            String  @id @default(cuid())
+  provider      String // DSTV | GOTV | STARTIMES
+  name          String
+  price         Int // kobo
+  costPrice     Int // kobo
+  variationCode String?
+  active        Boolean @default(true)
+
+  @@index([provider, active])
+}
