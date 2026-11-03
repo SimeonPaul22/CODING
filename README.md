@@ -254,3 +254,9 @@ For questions or suggestions, feel free to reach out!
 ---
 
 ⭐ If you found this helpful, please consider starring the repository!
+
+---
+
+## Also in this repository: crypto trading bot
+
+The [`crypto_bot/`](crypto_bot/) folder contains a separate project: a Claude-assisted spot crypto trading bot (ccxt + Anthropic API) with paper/live/backtest modes and hard-coded risk limits. See [`crypto_bot/README.md`](crypto_bot/README.md).

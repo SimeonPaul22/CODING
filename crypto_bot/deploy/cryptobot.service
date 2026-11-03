@@ -1,0 +1,28 @@
+# systemd unit for the trading bot. See README "Deploying on a Linux VPS".
+# Copy to /etc/systemd/system/cryptobot.service and adjust User/paths.
+[Unit]
+Description=Claude-assisted crypto trading bot
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=bot
+WorkingDirectory=/home/bot/crypto_bot
+ExecStart=/home/bot/crypto_bot/.venv/bin/python main.py run
+# Restart after crashes (exit code 1), but give the exchange a breather first.
+Restart=on-failure
+RestartSec=30
+# Do NOT restart when the bot exits on purpose (kill switch, drawdown shutdown,
+# refused startup = 2, 3, 4). Those exit codes mean "a human needs to look at this".
+RestartPreventExitStatus=2 3 4
+# Ask the bot to stop gracefully (SIGTERM), then wait for the current cycle.
+KillSignal=SIGTERM
+TimeoutStopSec=60
+Environment=PYTHONUNBUFFERED=1
+# Light hardening
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

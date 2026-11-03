@@ -1,0 +1,125 @@
+# =============================================================================
+# Crypto trading bot configuration.
+# Secrets (API keys, tokens) DO NOT go here - put them in .env (see .env.example).
+# Every value below is validated at startup by config/settings.py; a typo or an
+# out-of-range value stops the bot before it can trade.
+# =============================================================================
+
+# backtest | paper | live
+#   backtest - replays historical candles, no API keys needed
+#   paper    - live prices, simulated orders, fake balance stored locally
+#   live     - REAL orders with REAL money
+mode: paper
+
+# Second safety lock for live mode. Live trading only starts when mode is
+# "live" AND this is true AND you confirm at the startup prompt.
+live_trading_enabled: false
+
+exchange:
+  # bybit | binance | bitget | kucoin | quidax
+  name: bybit
+  # Use the exchange's testnet/sandbox when one exists (Bybit and Binance have
+  # spot testnets; Bitget, KuCoin and Quidax do not in ccxt).
+  testnet: false
+  symbols: ["BTC/USDT"]
+  # Candle size the strategy looks at. 15m = one decision every 15 minutes.
+  timeframe: "15m"
+  # How many candles to download for indicator calculation (EMA50 needs >50).
+  candles_limit: 200
+  quote_currency: "USDT"
+  # Network requests: timeout in ms, and retry attempts for network errors.
+  timeout_ms: 15000
+  max_retries: 4
+  # Quidax is not supported by ccxt; the bot ships an experimental adapter.
+  # Its live order path has not been tested against the real API, so it is
+  # blocked unless you explicitly acknowledge that here.
+  quidax_live_acknowledged: false
+
+llm:
+  # Which decision engine the live/paper loop uses: claude | rules
+  engine: claude
+  model: "claude-sonnet-5-5"
+  # Output budget per call, including the model's internal reasoning tokens.
+  max_tokens: 4096
+  # Reasoning effort: low | medium | high. Lower = cheaper and faster.
+  effort: "low"
+  timeout_seconds: 60
+  # Hard cap on estimated Anthropic spend per UTC day. When reached, the bot
+  # stops asking Claude and treats every cycle as HOLD (exits still run).
+  daily_cost_cap_usd: 1.00
+  # Prices used for the cost estimate (USD per million tokens).
+  input_price_per_mtok: 2.00
+  output_price_per_mtok: 10.00
+  # If Claude's safety system declines a request, let the API retry it on a
+  # fallback model in the same call (Anthropic "server-side fallback" beta).
+  refusal_fallback: true
+  # Ask the API to constrain the reply to our JSON schema. The reply is still
+  # validated by pydantic either way.
+  structured_output: true
+  # How many recent candles are summarised in the prompt.
+  prompt_candles: 12
+
+risk:
+  # Fixed size of every new position, in quote currency (USDT).
+  position_size_usdt: 10
+  max_open_positions_per_symbol: 1
+  max_trades_per_day: 3
+  min_confidence: 0.7
+  # Stop-loss / take-profit, in percent of the entry price.
+  default_stop_loss_pct: 2.0
+  default_take_profit_pct: 4.0
+  # Claude's suggestion is only used when it falls inside these bounds.
+  min_stop_loss_pct: 0.5
+  max_stop_loss_pct: 5.0
+  min_take_profit_pct: 1.0
+  max_take_profit_pct: 10.0
+  # The take-profit must be at least this multiple of the stop-loss.
+  min_reward_risk: 1.0
+  # Capital you allocate to the bot. Drawdown and loss limits are measured
+  # against this (plus the bot's own P&L), not your whole exchange account.
+  # In paper mode this is also the fake starting balance.
+  capital_usdt: 100
+  # Stop opening new trades for the rest of the UTC day when today's P&L
+  # (realised + open positions) falls below -X% of capital.
+  daily_loss_limit_pct: 2.0
+  # Shut the bot down completely when equity falls X% below its peak.
+  max_drawdown_pct: 10.0
+  # Close open bot positions when the max-drawdown shutdown triggers.
+  close_positions_on_shutdown: true
+  # Kill switch: create this file in the project folder to halt the bot.
+  kill_switch_file: "STOP"
+  # close_and_exit: sell the bot's open positions, then stop.
+  # exit_only: stop without touching positions (they stay open, unmanaged!).
+  kill_switch_action: "close_and_exit"
+
+paper:
+  # Simulated costs for paper fills.
+  fee_pct: 0.1
+  slippage_pct: 0.05
+
+loop:
+  # How often to check stop-loss/take-profit and the kill switch (seconds).
+  # Trading decisions are only made once per closed candle.
+  monitor_interval_seconds: 30
+
+backtest:
+  start: "2025-01-01"
+  end: "2025-06-30"
+  # rules = free rule-based stand-in for Claude; claude = real API calls.
+  engine: rules
+  # With engine=claude, only the last N candles are simulated (cost control).
+  claude_sample_candles: 30
+  fee_pct: 0.1
+  slippage_pct: 0.05
+
+logging:
+  level: INFO
+  log_file: "logs/bot.log"
+  max_bytes: 5000000
+  backup_count: 5
+  # One database per mode, so paper results never mix with live results.
+  db_dir: "data"
+
+alerts:
+  # Requires TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in .env.
+  telegram_enabled: false

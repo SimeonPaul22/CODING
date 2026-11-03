@@ -1,0 +1,10 @@
+# Python 3.11+ required (tested on 3.13). Install with: pip install -r requirements.txt
+ccxt==4.5.91
+anthropic==2.4.0
+pydantic==2.13.5
+pandas==3.0.5
+numpy==2.5.3
+PyYAML==6.0.3
+python-dotenv==1.2.3
+requests==2.34.2
+pytest==9.2.0
